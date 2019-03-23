@@ -1,6 +1,7 @@
 package com.silverbarsmarketplace.liveorderboard
 
 
+import kotlinx.coroutines.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -175,6 +176,43 @@ class LiveOrderBoardTest {
 
     }
 
+    @Test
+    fun humbleAttemptAtTestingTheClassUnderConcurrentSituations() {
+
+        val orders = runBlocking {
+            (1..1000).map {
+                async {
+                    val randomLong = (1..50).toList().random().toLong()
+                    val anOrder = createOrder(pricePerKg = somePossibleBigDecimal(), orderQuantity = somePossibleBigDecimal())
+                    delay(randomLong)
+                    liveOrderBoard.submitOrder(anOrder)
+                    anOrder
+                }
+            }.awaitAll()
+        }
+        val firstExpectedInformationSummary = createExpectedSummaryInformation(*orders.toTypedArray())
+        assertEquals(firstExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
+
+        val ordersToBeCancelled = orders.filterIndexed { index, _ -> index % 2 == 0 }
+        val remainingOrders = orders.filter { !ordersToBeCancelled.contains(it) }
+        val secondExpectedInformationSummary = createExpectedSummaryInformation(*remainingOrders.toTypedArray())
+        runBlocking {
+            ordersToBeCancelled.map {
+                async {
+                    val randomLong = (1..50).toList().random().toLong()
+                    delay(randomLong)
+                    liveOrderBoard.cancelOrder(it)
+                }
+            }
+        }
+        assertEquals(secondExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
+
+
+
+    }
+
+
+
 
     private fun createOrder(
         orderId: String = UUID.randomUUID().toString(),
@@ -212,5 +250,11 @@ class LiveOrderBoardTest {
     ): SummaryInformation {
         return SummaryInformation(buy, sell)
     }
+
+    private fun somePossibleBigDecimal(): BigDecimal = listOf(
+        BigDecimal(100),
+        BigDecimal(300),
+        BigDecimal(500)
+    ).random()
 
 }

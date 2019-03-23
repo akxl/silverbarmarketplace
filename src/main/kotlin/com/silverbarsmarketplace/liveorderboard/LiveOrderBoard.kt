@@ -15,7 +15,7 @@ class LiveOrderBoard {
 
     private fun getSellSummaryInformation() = sellSummaryInformation.toSortedMap()
 
-    // is synchronized required?
+    @Synchronized
     fun submitOrder(order: Order): OrderStatus {
 
         val isOrderValid = checkForValidOrder(order)
@@ -50,6 +50,7 @@ class LiveOrderBoard {
         return OrderStatus.SUBMISSION_ACCEPTED
     }
 
+    @Synchronized
     fun cancelOrder(order: Order): OrderStatus {
 
         val orderFoundAndRemoved = orders.remove(order)
