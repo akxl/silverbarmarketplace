@@ -91,8 +91,8 @@ class LiveOrderBoardTest {
         val orders = arrayOf(
             createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(3.5), pricePerKg = BigDecimal(306), userId = "user1"),
             createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(1.2), pricePerKg = BigDecimal(310), userId = "user2"),
-            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(1.5), pricePerKg = BigDecimal(307)),
-            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(2), pricePerKg = BigDecimal(306))
+            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(1.5), pricePerKg = BigDecimal(307), userId = "user3"),
+            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(2), pricePerKg = BigDecimal(306), userId = "user4")
         )
         val expectedSummaryInformation = createExpectedSummaryInformation(*orders)
 
