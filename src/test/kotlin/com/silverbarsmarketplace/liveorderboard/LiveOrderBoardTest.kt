@@ -20,7 +20,7 @@ class LiveOrderBoardTest {
         )
 
         val isFirstOrderAdded = LiveOrderBoard.submitOrder(singleBuyOrder)
-        assertEquals(true, isFirstOrderAdded)
+        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isFirstOrderAdded)
 
         val firstExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity), sell = sortedMapOf())
 
@@ -36,7 +36,7 @@ class LiveOrderBoardTest {
         )
 
         val isSecondOrderAdded = LiveOrderBoard.submitOrder(anotherSingleBuyOrder)
-        assertEquals(true, isSecondOrderAdded)
+        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isSecondOrderAdded)
 
         val secondExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity.add(anotherSingleBuyOrder.orderQuantity)), sell = sortedMapOf())
         val secondSummaryInformation = LiveOrderBoard.getSummaryInformation()
@@ -51,7 +51,7 @@ class LiveOrderBoardTest {
         )
 
         val isThirdOrderAdded = LiveOrderBoard.submitOrder(yetAnotherSingleBuyOrder)
-        assertEquals(true, isThirdOrderAdded)
+        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isThirdOrderAdded)
 
         val thirdExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(yetAnotherSingleBuyOrder.pricePerKg to yetAnotherSingleBuyOrder.orderQuantity, singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity.add(anotherSingleBuyOrder.orderQuantity)), sell = sortedMapOf())
         val thirdSummaryInformation = LiveOrderBoard.getSummaryInformation()
@@ -61,6 +61,17 @@ class LiveOrderBoardTest {
 
     @Test
     fun unableToAddOrderWithSameOrderNumber() {
+
+        val singleBuyOrder = Order(
+            orderId = UUID.randomUUID().toString(),
+            userId = "John Smith",
+            orderQuantity = BigDecimal(-101),
+            pricePerKg = BigDecimal(-501),
+            orderType = OrderType.SELL
+        )
+
+        val isFirstOrderAdded = LiveOrderBoard.submitOrder(singleBuyOrder)
+        assertEquals(OrderStatus.SUBMISSION_REJECTED_INVALID, isFirstOrderAdded)
 
     }
 

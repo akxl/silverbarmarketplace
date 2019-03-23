@@ -9,6 +9,7 @@ object LiveOrderBoard {
     private val buySummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
     private val sellSummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
 
+    // todo: remove
     fun getOrders(): Set<Order> = orders.toSet()
 
     fun getSummaryInformation(): SummaryInformation {
@@ -23,19 +24,38 @@ object LiveOrderBoard {
     private fun getSellSummaryInformation() = sellSummaryInformation.toSortedMap()
 
     // is synchronized required?
-    fun submitOrder(order: Order): Boolean {
+    fun submitOrder(order: Order): OrderStatus {
+
+        val isOrderValid = checkForValidOrder(order)
+        if (isOrderValid == OrderStatus.SUBMISSION_REJECTED_INVALID) {
+            return isOrderValid
+        }
+
         val isNewOrder = orders.add(order)
-        return if (isNewOrder && order.orderType == OrderType.BUY) {
+        if (isNewOrder == false) {
+            return OrderStatus.SUBMISSION_REJECTED_DUPLICATE
+        }
+
+        return if (order.orderType == OrderType.BUY) {
             val isNewTotalQuantityComputed = buySummaryInformation.computeIfPresent(order.pricePerKg) { _, totalQuantity -> totalQuantity.add(order.orderQuantity) } != null
             val isNewPriceAdded = buySummaryInformation.putIfAbsent(order.pricePerKg, order.orderQuantity) == null
-            (isNewTotalQuantityComputed || isNewPriceAdded)
-        } else if (isNewOrder && order.orderType == OrderType.SELL) {
+            checkIfSubmissionIsSuccessful(isNewTotalQuantityComputed, isNewPriceAdded)
+        } else  {
             val isNewTotalQuantityComputed = sellSummaryInformation.computeIfPresent(order.pricePerKg) { _, totalQuantity -> totalQuantity.add(order.orderQuantity) } != null
             val isNewPriceAdded = sellSummaryInformation.putIfAbsent(order.pricePerKg, order.orderQuantity) == null
-            (isNewTotalQuantityComputed || isNewPriceAdded)
-        } else {
-            false
+            checkIfSubmissionIsSuccessful(isNewTotalQuantityComputed, isNewPriceAdded)
         }
+    }
+
+    private fun checkForValidOrder(order: Order): OrderStatus? {
+        return if (order.orderQuantity > BigDecimal.ZERO && order.pricePerKg >= BigDecimal.ZERO) null else OrderStatus.SUBMISSION_REJECTED_INVALID
+    }
+
+    private fun checkIfSubmissionIsSuccessful(isNewTotalQuantityComputed: Boolean, isNewPriceAdded: Boolean): OrderStatus {
+        if ((isNewTotalQuantityComputed || isNewPriceAdded) == false) {
+            throw Exception("Order submission failed")
+        }
+        return OrderStatus.SUBMISSION_ACCEPTED
     }
 
 }
