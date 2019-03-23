@@ -100,6 +100,33 @@ class LiveOrderBoardTest {
         assertEquals(true, areAllOrdersSubmittedSuccessfully)
         assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
+    }
+
+
+    @Test
+    fun rejectsCancellationsOfOrdersThatDoNotExist_emptyLiveOrderBoard() {
+
+        val anUnsubmittedOrder = createOrder()
+        val expectedSummaryInformation = createExpectedSummaryInformation()
+
+        val hasOrderCancellationBeenRejected = liveOrderBoard.cancelOrder(anUnsubmittedOrder)
+        assertEquals(OrderStatus.CANCELLATION_REJECTED_NOT_FOUND, hasOrderCancellationBeenRejected)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+    }
+
+    @Test
+    fun rejectsCancellationsOfOrdersThatDoNotExist_prepopulatedLiveOrderBoard() {
+
+        val anOrderType = anyOrderType()
+        val prepopulatedOrder = createOrder(orderType = anOrderType, pricePerKg = BigDecimal(500), orderQuantity = BigDecimal(600))
+        liveOrderBoard.submitOrder(prepopulatedOrder)
+        val expectedSummaryInformation = createExpectedSummaryInformation(prepopulatedOrder)
+
+        val anUnsubmittedOrder = createOrder(orderType = anOrderType, pricePerKg = BigDecimal(1), orderQuantity = BigDecimal(42))
+        val hasOrderCancellationBeenRejected = liveOrderBoard.cancelOrder(anUnsubmittedOrder)
+        assertEquals(OrderStatus.CANCELLATION_REJECTED_NOT_FOUND, hasOrderCancellationBeenRejected)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
 

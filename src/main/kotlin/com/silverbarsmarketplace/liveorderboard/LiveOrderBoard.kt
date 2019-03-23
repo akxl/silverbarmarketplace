@@ -50,6 +50,16 @@ class LiveOrderBoard {
         return OrderStatus.SUBMISSION_ACCEPTED
     }
 
+    fun cancelOrder(order: Order): OrderStatus {
+
+        val orderFoundAndRemoved = orders.remove(order)
+        if (orderFoundAndRemoved == false) {
+            return OrderStatus.CANCELLATION_REJECTED_NOT_FOUND
+        }
+
+        return OrderStatus.CANCELLATION_ACCEPTED
+    }
+
 }
 
 data class SummaryInformation(val buy: SortedMap<BigDecimal, BigDecimal>, val sell: SortedMap<BigDecimal, BigDecimal>)
