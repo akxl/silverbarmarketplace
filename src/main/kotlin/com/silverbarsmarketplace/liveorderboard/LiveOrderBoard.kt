@@ -57,6 +57,27 @@ class LiveOrderBoard {
             return OrderStatus.CANCELLATION_REJECTED_NOT_FOUND
         }
 
+        return if (order.orderType == OrderType.BUY) {
+            val isCancellationSuccessful = if (buySummaryInformation[order.pricePerKg] != null && buySummaryInformation[order.pricePerKg] == order.orderQuantity) {
+                buySummaryInformation.remove(order.pricePerKg)
+            } else {
+                buySummaryInformation.computeIfPresent(order.pricePerKg) { _, totalQuantity -> totalQuantity.subtract(order.orderQuantity) }
+            }
+            checkIfCancellationIsSuccessful(isCancellationSuccessful)
+        } else {
+            val isCancellationSuccessful = if (sellSummaryInformation[order.pricePerKg] != null && sellSummaryInformation[order.pricePerKg] == order.orderQuantity) {
+                sellSummaryInformation.remove(order.pricePerKg)
+            } else {
+                sellSummaryInformation.computeIfPresent(order.pricePerKg) { _, totalQuantity -> totalQuantity.subtract(order.orderQuantity) }
+            }
+            checkIfCancellationIsSuccessful(isCancellationSuccessful)
+        }
+    }
+
+    private fun checkIfCancellationIsSuccessful(cancellationIsSuccessful: BigDecimal?): OrderStatus {
+        if (cancellationIsSuccessful == null) {
+            throw Exception("Order submission failed. Internal error. Please contact the developer.")
+        }
         return OrderStatus.CANCELLATION_ACCEPTED
     }
 

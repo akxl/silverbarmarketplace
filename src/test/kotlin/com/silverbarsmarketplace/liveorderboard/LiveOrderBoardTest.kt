@@ -130,6 +130,19 @@ class LiveOrderBoardTest {
 
     }
 
+    @Test
+    fun ableToCancelExistingOrder() {
+
+        val prepolulatedOrder = createOrder()
+        val expectedSummaryInformation = createExpectedSummaryInformation()
+        liveOrderBoard.submitOrder(prepolulatedOrder)
+
+        val hasOrderBeenCancelled = liveOrderBoard.cancelOrder(prepolulatedOrder)
+        assertEquals(OrderStatus.CANCELLATION_ACCEPTED, hasOrderBeenCancelled)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+    }
+
 
     private fun createOrder(
         orderId: String = UUID.randomUUID().toString(),
