@@ -179,6 +179,8 @@ class LiveOrderBoardTest {
     @Test
     fun humbleAttemptAtTestingTheClassUnderConcurrentSituations() {
 
+        // Note: I would expect that such a functionality would be used under high load in a production setting, hence there might be a need for it to be thread-safe? This is a primitive attempt at testing the class under such a situation.
+
         val orders = runBlocking {
             (1..1000).map {
                 async {
