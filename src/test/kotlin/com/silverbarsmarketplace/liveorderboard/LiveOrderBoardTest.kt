@@ -19,13 +19,7 @@ class LiveOrderBoardTest {
     @Test
     fun ableToAddBuyOrders() {
 
-        val singleBuyOrder = Order(
-            orderId = UUID.randomUUID().toString(),
-            userId = "John Smith",
-            orderQuantity = BigDecimal(101),
-            pricePerKg = BigDecimal(501),
-            orderType = OrderType.BUY
-        )
+        val singleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(501), orderQuantity = BigDecimal(101))
 
         val isFirstOrderAdded = liveOrderBoard.submitOrder(singleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isFirstOrderAdded)
@@ -35,13 +29,7 @@ class LiveOrderBoardTest {
         val firstSummaryInformation = liveOrderBoard.getSummaryInformation()
         assertEquals(firstExpectedSummaryBoard, firstSummaryInformation)
 
-        val anotherSingleBuyOrder = Order(
-            orderId = UUID.randomUUID().toString(),
-            userId = "Jane Doe",
-            orderQuantity = BigDecimal(101),
-            pricePerKg = BigDecimal(501),
-            orderType = OrderType.BUY
-        )
+        val anotherSingleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(501), orderQuantity = BigDecimal(101))
 
         val isSecondOrderAdded = liveOrderBoard.submitOrder(anotherSingleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isSecondOrderAdded)
@@ -50,13 +38,7 @@ class LiveOrderBoardTest {
         val secondSummaryInformation = liveOrderBoard.getSummaryInformation()
         assertEquals(secondExpectedSummaryBoard, secondSummaryInformation)
 
-        val yetAnotherSingleBuyOrder = Order(
-            orderId = UUID.randomUUID().toString(),
-            userId = "Muhammad Ali",
-            orderQuantity = BigDecimal(101),
-            pricePerKg = BigDecimal(601),
-            orderType = OrderType.BUY
-        )
+        val yetAnotherSingleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(601), orderQuantity = BigDecimal(101))
 
         val isThirdOrderAdded = liveOrderBoard.submitOrder(yetAnotherSingleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isThirdOrderAdded)
@@ -70,17 +52,21 @@ class LiveOrderBoardTest {
     @Test
     fun unableToAddOrderWithSameOrderNumber() {
 
-        val singleBuyOrder = Order(
-            orderId = UUID.randomUUID().toString(),
-            userId = "John Smith",
-            orderQuantity = BigDecimal(-101),
-            pricePerKg = BigDecimal(-501),
-            orderType = OrderType.SELL
-        )
+        val singleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(-501), orderQuantity = BigDecimal(-101))
 
         val isFirstOrderAdded = liveOrderBoard.submitOrder(singleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_REJECTED_INVALID, isFirstOrderAdded)
 
+    }
+
+    private fun createOrder(
+        orderId: String = UUID.randomUUID().toString(),
+        userId: String = UUID.randomUUID().toString(),
+        orderQuantity: BigDecimal = BigDecimal(Math.abs(Math.random())),
+        pricePerKg: BigDecimal = BigDecimal(Math.abs(Math.random())),
+        orderType: OrderType = OrderType.values().toList().random()
+    ): Order {
+        return Order(orderId, userId, orderQuantity, pricePerKg, orderType)
     }
 
 }
