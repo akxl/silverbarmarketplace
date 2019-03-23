@@ -59,12 +59,15 @@ class LiveOrderBoardTest {
     }
 
     @Test
-    fun unableToAddOrderWithSameOrderNumber() {
+    fun unableToAddInvalidOrder() {
 
-        val singleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(-501), orderQuantity = BigDecimal(-101))
+        val singleBuyOrder = createOrder(pricePerKg = BigDecimal(-501), orderQuantity = BigDecimal(-101))
 
         val isFirstOrderAdded = liveOrderBoard.submitOrder(singleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_REJECTED_INVALID, isFirstOrderAdded)
+
+        val expectedSummaryInformation = createExpectedSummaryInformation()
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
 
@@ -94,8 +97,15 @@ class LiveOrderBoardTest {
             .aggregate { _, accumulator: BigDecimal?, element, _ -> (accumulator ?: BigDecimal.ZERO).add(element.orderQuantity) }
             .toSortedMap()
 
-        return SummaryInformation(buyOrders, sellOrders)
+        return createExpectedSummaryInformation(buyOrders, sellOrders)
 
+    }
+
+    private fun createExpectedSummaryInformation(
+        buy: SortedMap<BigDecimal, BigDecimal> = sortedMapOf(),
+        sell: SortedMap<BigDecimal, BigDecimal> = sortedMapOf()
+    ): SummaryInformation {
+        return SummaryInformation(buy, sell)
     }
 
 }
