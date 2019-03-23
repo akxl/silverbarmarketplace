@@ -131,7 +131,7 @@ class LiveOrderBoardTest {
     }
 
     @Test
-    fun ableToCancelExistingOrder() {
+    fun ableToCancelExistingOrder_removalOfEntireRow() {
 
         val prepolulatedOrder = createOrder()
         val expectedSummaryInformation = createExpectedSummaryInformation()
@@ -139,6 +139,22 @@ class LiveOrderBoardTest {
 
         val hasOrderBeenCancelled = liveOrderBoard.cancelOrder(prepolulatedOrder)
         assertEquals(OrderStatus.CANCELLATION_ACCEPTED, hasOrderBeenCancelled)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+    }
+
+    @Test
+    fun ableToCancelExistingOrder_rowStillHasRemainingQuantity() {
+
+        val anOrderType = anyOrderType()
+        val prepopulatedOrder1 = createOrder(orderType = anOrderType, pricePerKg = BigDecimal(100), orderQuantity = BigDecimal(1000))
+        val expectedSummaryInformation = createExpectedSummaryInformation(prepopulatedOrder1)
+
+        val prepopulatedOrder2 = createOrder(orderType = anOrderType, pricePerKg = BigDecimal(100), orderQuantity = BigDecimal(100))
+        liveOrderBoard.submitOrder(prepopulatedOrder2) // let order #2 go in first
+        liveOrderBoard.submitOrder(prepopulatedOrder1)
+
+        liveOrderBoard.cancelOrder(prepopulatedOrder2)
         assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
