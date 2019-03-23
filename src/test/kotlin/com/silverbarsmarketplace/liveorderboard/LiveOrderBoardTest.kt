@@ -2,11 +2,19 @@ package com.silverbarsmarketplace.liveorderboard
 
 
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
 import java.util.*
 
 class LiveOrderBoardTest {
+
+    private lateinit var liveOrderBoard: LiveOrderBoard
+
+    @Before
+    fun createFreshInstance() {
+        liveOrderBoard = LiveOrderBoard()
+    }
 
     @Test
     fun ableToAddBuyOrders() {
@@ -19,12 +27,12 @@ class LiveOrderBoardTest {
             orderType = OrderType.BUY
         )
 
-        val isFirstOrderAdded = LiveOrderBoard.submitOrder(singleBuyOrder)
+        val isFirstOrderAdded = liveOrderBoard.submitOrder(singleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isFirstOrderAdded)
 
         val firstExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity), sell = sortedMapOf())
 
-        val firstSummaryInformation = LiveOrderBoard.getSummaryInformation()
+        val firstSummaryInformation = liveOrderBoard.getSummaryInformation()
         assertEquals(firstExpectedSummaryBoard, firstSummaryInformation)
 
         val anotherSingleBuyOrder = Order(
@@ -35,11 +43,11 @@ class LiveOrderBoardTest {
             orderType = OrderType.BUY
         )
 
-        val isSecondOrderAdded = LiveOrderBoard.submitOrder(anotherSingleBuyOrder)
+        val isSecondOrderAdded = liveOrderBoard.submitOrder(anotherSingleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isSecondOrderAdded)
 
         val secondExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity.add(anotherSingleBuyOrder.orderQuantity)), sell = sortedMapOf())
-        val secondSummaryInformation = LiveOrderBoard.getSummaryInformation()
+        val secondSummaryInformation = liveOrderBoard.getSummaryInformation()
         assertEquals(secondExpectedSummaryBoard, secondSummaryInformation)
 
         val yetAnotherSingleBuyOrder = Order(
@@ -50,11 +58,11 @@ class LiveOrderBoardTest {
             orderType = OrderType.BUY
         )
 
-        val isThirdOrderAdded = LiveOrderBoard.submitOrder(yetAnotherSingleBuyOrder)
+        val isThirdOrderAdded = liveOrderBoard.submitOrder(yetAnotherSingleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isThirdOrderAdded)
 
         val thirdExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(yetAnotherSingleBuyOrder.pricePerKg to yetAnotherSingleBuyOrder.orderQuantity, singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity.add(anotherSingleBuyOrder.orderQuantity)), sell = sortedMapOf())
-        val thirdSummaryInformation = LiveOrderBoard.getSummaryInformation()
+        val thirdSummaryInformation = liveOrderBoard.getSummaryInformation()
         assertEquals(thirdExpectedSummaryBoard, thirdSummaryInformation)
 
     }
@@ -70,7 +78,7 @@ class LiveOrderBoardTest {
             orderType = OrderType.SELL
         )
 
-        val isFirstOrderAdded = LiveOrderBoard.submitOrder(singleBuyOrder)
+        val isFirstOrderAdded = liveOrderBoard.submitOrder(singleBuyOrder)
         assertEquals(OrderStatus.SUBMISSION_REJECTED_INVALID, isFirstOrderAdded)
 
     }

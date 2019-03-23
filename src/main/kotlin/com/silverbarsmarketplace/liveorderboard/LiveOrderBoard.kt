@@ -3,7 +3,7 @@ package com.silverbarsmarketplace.liveorderboard
 import java.math.BigDecimal
 import java.util.*
 
-object LiveOrderBoard {
+class LiveOrderBoard {
 
     private val orders: MutableSet<Order> = mutableSetOf()
     private val buySummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
