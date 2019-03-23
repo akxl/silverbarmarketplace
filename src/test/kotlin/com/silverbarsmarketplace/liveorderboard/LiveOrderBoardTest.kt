@@ -159,6 +159,22 @@ class LiveOrderBoardTest {
 
     }
 
+    @Test
+    fun ableToCancelExistingOrder_withoutAffectingOtherRows() {
+
+        val tenOrders = (0..9).map { createOrder() }
+        val firstExpectedSummaryInformation = createExpectedSummaryInformation(*tenOrders.toTypedArray())
+        tenOrders.forEach { liveOrderBoard.submitOrder(it) }
+        assertEquals(firstExpectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+        val ordersToBeCancelled= tenOrders.filterIndexed { index, _ -> index % 2 == 0 }
+        val remainingOrders = tenOrders.filter { !ordersToBeCancelled.contains(it) }
+        val secondExpectedSummaryInformation = createExpectedSummaryInformation(*remainingOrders.toTypedArray())
+        ordersToBeCancelled.forEach { liveOrderBoard.cancelOrder(it) }
+        assertEquals(secondExpectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+    }
+
 
     private fun createOrder(
         orderId: String = UUID.randomUUID().toString(),
