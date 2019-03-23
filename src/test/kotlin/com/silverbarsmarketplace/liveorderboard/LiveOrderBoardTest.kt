@@ -17,35 +17,44 @@ class LiveOrderBoardTest {
     }
 
     @Test
-    fun ableToAddBuyOrders() {
+    fun ableToAddSingleOrder() {
 
-        val singleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(501), orderQuantity = BigDecimal(101))
+        val anOrder = createOrder()
+        val isOrderAdded = liveOrderBoard.submitOrder(anOrder)
+        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isOrderAdded)
 
-        val isFirstOrderAdded = liveOrderBoard.submitOrder(singleBuyOrder)
-        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isFirstOrderAdded)
+        val expectedSummaryInformation = createExpectedSummaryInformation(anOrder)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
-        val firstExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity), sell = sortedMapOf())
+    }
 
-        val firstSummaryInformation = liveOrderBoard.getSummaryInformation()
-        assertEquals(firstExpectedSummaryBoard, firstSummaryInformation)
+    @Test
+    fun summaryBoardAccumulatesOrdersOfSimilarPrice() {
 
-        val anotherSingleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(501), orderQuantity = BigDecimal(101))
+        val orderType = anyOrderType()
+        val firstOrder = createOrder(orderType = orderType, pricePerKg = BigDecimal(100), orderQuantity = BigDecimal(200))
+        val secondOrder = createOrder(orderType = orderType, pricePerKg = BigDecimal(100), orderQuantity = BigDecimal(300))
+        val expectedSummaryInformation = createExpectedSummaryInformation(firstOrder, secondOrder)
 
-        val isSecondOrderAdded = liveOrderBoard.submitOrder(anotherSingleBuyOrder)
-        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isSecondOrderAdded)
+        liveOrderBoard.submitOrder(firstOrder)
+        liveOrderBoard.submitOrder(secondOrder)
 
-        val secondExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity.add(anotherSingleBuyOrder.orderQuantity)), sell = sortedMapOf())
-        val secondSummaryInformation = liveOrderBoard.getSummaryInformation()
-        assertEquals(secondExpectedSummaryBoard, secondSummaryInformation)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
-        val yetAnotherSingleBuyOrder = createOrder(orderType = OrderType.BUY, pricePerKg = BigDecimal(601), orderQuantity = BigDecimal(101))
+    }
 
-        val isThirdOrderAdded = liveOrderBoard.submitOrder(yetAnotherSingleBuyOrder)
-        assertEquals(OrderStatus.SUBMISSION_ACCEPTED, isThirdOrderAdded)
+    @Test
+    fun eachPriceIsShownAsDifferentRows() {
 
-        val thirdExpectedSummaryBoard = SummaryInformation(buy = sortedMapOf(yetAnotherSingleBuyOrder.pricePerKg to yetAnotherSingleBuyOrder.orderQuantity, singleBuyOrder.pricePerKg to singleBuyOrder.orderQuantity.add(anotherSingleBuyOrder.orderQuantity)), sell = sortedMapOf())
-        val thirdSummaryInformation = liveOrderBoard.getSummaryInformation()
-        assertEquals(thirdExpectedSummaryBoard, thirdSummaryInformation)
+        val orderType = anyOrderType()
+        val firstOrder = createOrder(pricePerKg = BigDecimal(100), orderQuantity = BigDecimal(800), orderType = orderType)
+        val secondOrder = createOrder(pricePerKg = BigDecimal(200), orderQuantity = BigDecimal(900), orderType = orderType)
+        val expectedSummaryInformation = createExpectedSummaryInformation(firstOrder, secondOrder)
+
+        liveOrderBoard.submitOrder(firstOrder)
+        liveOrderBoard.submitOrder(secondOrder)
+
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
 
@@ -64,9 +73,29 @@ class LiveOrderBoardTest {
         userId: String = UUID.randomUUID().toString(),
         orderQuantity: BigDecimal = BigDecimal(Math.abs(Math.random())),
         pricePerKg: BigDecimal = BigDecimal(Math.abs(Math.random())),
-        orderType: OrderType = OrderType.values().toList().random()
+        orderType: OrderType = anyOrderType()
     ): Order {
         return Order(orderId, userId, orderQuantity, pricePerKg, orderType)
+    }
+
+    private fun anyOrderType(): OrderType {
+        return OrderType.values().toList().random()
+    }
+
+    private fun createExpectedSummaryInformation(vararg orders: Order): SummaryInformation {
+
+        val buyOrders = orders.filter { it.orderType == OrderType.BUY }
+            .groupingBy { it.pricePerKg }
+            .aggregate { _, accumulator: BigDecimal?, element, _ -> (accumulator ?: BigDecimal.ZERO).add(element.orderQuantity) }
+            .toSortedMap(Collections.reverseOrder())
+
+        val sellOrders = orders.filter { it.orderType == OrderType.SELL }
+            .groupingBy { it.pricePerKg }
+            .aggregate { _, accumulator: BigDecimal?, element, _ -> (accumulator ?: BigDecimal.ZERO).add(element.orderQuantity) }
+            .toSortedMap()
+
+        return SummaryInformation(buyOrders, sellOrders)
+
     }
 
 }
