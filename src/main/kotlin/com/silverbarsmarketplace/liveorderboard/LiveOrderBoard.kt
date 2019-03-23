@@ -9,15 +9,7 @@ class LiveOrderBoard {
     private val buySummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
     private val sellSummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
 
-    // todo: remove
-    fun getOrders(): Set<Order> = orders.toSet()
-
-    fun getSummaryInformation(): SummaryInformation {
-        return SummaryInformation(
-            buy = getBuySummaryInformation(),
-            sell = getSellSummaryInformation()
-        )
-    }
+    fun getSummaryInformation(): SummaryInformation = SummaryInformation(getBuySummaryInformation(), getSellSummaryInformation())
 
     private fun getBuySummaryInformation() = buySummaryInformation.toSortedMap(Collections.reverseOrder())
 
@@ -53,7 +45,7 @@ class LiveOrderBoard {
 
     private fun checkIfSubmissionIsSuccessful(isNewTotalQuantityComputed: Boolean, isNewPriceAdded: Boolean): OrderStatus {
         if ((isNewTotalQuantityComputed || isNewPriceAdded) == false) {
-            throw Exception("Order submission failed")
+            throw Exception("Order submission failed. Internal error. Please contact the developer.")
         }
         return OrderStatus.SUBMISSION_ACCEPTED
     }
