@@ -84,6 +84,26 @@ class LiveOrderBoardTest {
 
     }
 
+
+    @Test
+    fun ableToRunExampleGivenOnSpecSheet() {
+
+        val orders = arrayOf(
+            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(3.5), pricePerKg = BigDecimal(306), userId = "user1"),
+            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(1.2), pricePerKg = BigDecimal(310), userId = "user2"),
+            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(1.5), pricePerKg = BigDecimal(307)),
+            createOrder(orderType = OrderType.SELL, orderQuantity = BigDecimal(2), pricePerKg = BigDecimal(306))
+        )
+        val expectedSummaryInformation = createExpectedSummaryInformation(*orders)
+
+        val areAllOrdersSubmittedSuccessfully = orders.map { liveOrderBoard.submitOrder(it) }.all { it == OrderStatus.SUBMISSION_ACCEPTED }
+        assertEquals(true, areAllOrdersSubmittedSuccessfully)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+
+    }
+
+
     private fun createOrder(
         orderId: String = UUID.randomUUID().toString(),
         userId: String = UUID.randomUUID().toString(),
