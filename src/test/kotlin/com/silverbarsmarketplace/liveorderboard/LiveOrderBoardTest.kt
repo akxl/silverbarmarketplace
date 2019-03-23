@@ -71,6 +71,19 @@ class LiveOrderBoardTest {
 
     }
 
+    @Test
+    fun unableToAddDuplicateOrder() {
+
+        val anOrder = createOrder()
+        val expectedSummaryInformation = createExpectedSummaryInformation(anOrder)
+        liveOrderBoard.submitOrder(anOrder)
+
+        val hasResubmissionFailed = liveOrderBoard.submitOrder(anOrder)
+        assertEquals(OrderStatus.SUBMISSION_REJECTED_DUPLICATE, hasResubmissionFailed)
+        assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
+
+    }
+
     private fun createOrder(
         orderId: String = UUID.randomUUID().toString(),
         userId: String = UUID.randomUUID().toString(),
