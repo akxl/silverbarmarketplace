@@ -9,12 +9,10 @@ class LiveOrderBoard {
     private val buySummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
     private val sellSummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
 
+
     @Synchronized
     fun getSummaryInformation(): SummaryInformation = SummaryInformation(getBuySummaryInformation(), getSellSummaryInformation())
 
-    private fun getBuySummaryInformation() = buySummaryInformation.toSortedMap(Collections.reverseOrder())
-
-    private fun getSellSummaryInformation() = sellSummaryInformation.toSortedMap()
 
     @Synchronized
     fun submitOrder(order: Order): OrderStatus {
@@ -40,16 +38,6 @@ class LiveOrderBoard {
         }
     }
 
-    private fun checkForValidOrder(order: Order): OrderStatus? {
-        return if (order.orderQuantity > BigDecimal.ZERO && order.pricePerKg >= BigDecimal.ZERO) null else OrderStatus.SUBMISSION_REJECTED_INVALID
-    }
-
-    private fun checkIfSubmissionIsSuccessful(isNewTotalQuantityComputed: Boolean, isNewPriceAdded: Boolean): OrderStatus {
-        if ((isNewTotalQuantityComputed || isNewPriceAdded) == false) {
-            throw Exception("Order submission failed. Internal error. Please contact the developer.")
-        }
-        return OrderStatus.SUBMISSION_ACCEPTED
-    }
 
     @Synchronized
     fun cancelOrder(order: Order): OrderStatus {
@@ -75,6 +63,26 @@ class LiveOrderBoard {
             checkIfCancellationIsSuccessful(isCancellationSuccessful)
         }
     }
+
+
+    private fun getBuySummaryInformation() = buySummaryInformation.toSortedMap(Collections.reverseOrder())
+
+
+    private fun getSellSummaryInformation() = sellSummaryInformation.toSortedMap()
+
+
+    private fun checkForValidOrder(order: Order): OrderStatus? {
+        return if (order.orderQuantity > BigDecimal.ZERO && order.pricePerKg >= BigDecimal.ZERO) null else OrderStatus.SUBMISSION_REJECTED_INVALID
+    }
+
+
+    private fun checkIfSubmissionIsSuccessful(isNewTotalQuantityComputed: Boolean, isNewPriceAdded: Boolean): OrderStatus {
+        if ((isNewTotalQuantityComputed || isNewPriceAdded) == false) {
+            throw Exception("Order submission failed. Internal error. Please contact the developer.")
+        }
+        return OrderStatus.SUBMISSION_ACCEPTED
+    }
+
 
     private fun checkIfCancellationIsSuccessful(cancellationIsSuccessful: BigDecimal?): OrderStatus {
         if (cancellationIsSuccessful == null) {
