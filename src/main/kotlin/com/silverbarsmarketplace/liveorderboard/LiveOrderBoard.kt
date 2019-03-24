@@ -9,6 +9,7 @@ class LiveOrderBoard {
     private val buySummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
     private val sellSummaryInformation: SortedMap<BigDecimal, BigDecimal> = TreeMap()
 
+    @Synchronized
     fun getSummaryInformation(): SummaryInformation = SummaryInformation(getBuySummaryInformation(), getSellSummaryInformation())
 
     private fun getBuySummaryInformation() = buySummaryInformation.toSortedMap(Collections.reverseOrder())
