@@ -173,13 +173,13 @@ class LiveOrderBoardTest {
     fun ableToCancelExistingOrder_withoutAffectingOtherRows() {
 
         val tenOrders = (0..9).map { createOrder() }
-        val firstExpectedSummaryInformation = createExpectedSummaryInformation(*tenOrders.toTypedArray())
+        val firstExpectedSummaryInformation = createExpectedSummaryInformation(tenOrders)
         tenOrders.forEach { liveOrderBoard.submitOrder(it) }
         assertEquals(firstExpectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
         val ordersToBeCancelled= tenOrders.filterIndexed { index, _ -> index % 2 == 0 }
         val remainingOrders = tenOrders.filter { !ordersToBeCancelled.contains(it) }
-        val secondExpectedSummaryInformation = createExpectedSummaryInformation(*remainingOrders.toTypedArray())
+        val secondExpectedSummaryInformation = createExpectedSummaryInformation(remainingOrders)
         ordersToBeCancelled.forEach { liveOrderBoard.cancelOrder(it) }
         assertEquals(secondExpectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
@@ -190,17 +190,18 @@ class LiveOrderBoardTest {
     fun humbleAttemptAtTestingTheClassUnderConcurrentSituations() {
 
         // Note: I would expect that such a functionality would be used under high load in a production setting, hence there might be a need for it to be thread-safe? This is a primitive attempt at testing the class under such a situation.
+        // @Ignore this if needed. On my computer, this test takes < 2secs
 
         val maxNumberOfCoroutines = 10000
 
         val orders = createAndAddNumberOfOrdersViaAsyncThreads(maxNumberOfCoroutines)
-        val firstExpectedInformationSummary = createExpectedSummaryInformation(*orders.toTypedArray())
+        val firstExpectedInformationSummary = createExpectedSummaryInformation(orders)
         assertEquals(firstExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
 
         // These single-threaded filtration are the bottlenecks
         val ordersToBeCancelled = orders.filterIndexed { index, _ -> index % 2 == 0 }
         val remainingOrders = orders.filter { !ordersToBeCancelled.contains(it) }
-        val secondExpectedInformationSummary = createExpectedSummaryInformation(*remainingOrders.toTypedArray())
+        val secondExpectedInformationSummary = createExpectedSummaryInformation(remainingOrders)
 
 
         cancelOrdersViaAysncThreads(ordersToBeCancelled)
@@ -240,6 +241,8 @@ class LiveOrderBoardTest {
         return createExpectedSummaryInformation(buyOrders, sellOrders)
 
     }
+
+    private fun createExpectedSummaryInformation(orders: List<Order>) = createExpectedSummaryInformation(*orders.toTypedArray())
 
     private fun createExpectedSummaryInformation(
         buy: SortedMap<BigDecimal, BigDecimal> = sortedMapOf(),
