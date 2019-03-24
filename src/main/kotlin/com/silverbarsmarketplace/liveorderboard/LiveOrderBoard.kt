@@ -65,9 +65,8 @@ class LiveOrderBoard {
     }
 
 
+    // Return a copy
     private fun getBuySummaryInformation() = buySummaryInformation.toSortedMap(Collections.reverseOrder())
-
-
     private fun getSellSummaryInformation() = sellSummaryInformation.toSortedMap()
 
 
@@ -92,5 +91,6 @@ class LiveOrderBoard {
     }
 
 }
+
 
 data class SummaryInformation(val buy: SortedMap<BigDecimal, BigDecimal>, val sell: SortedMap<BigDecimal, BigDecimal>)

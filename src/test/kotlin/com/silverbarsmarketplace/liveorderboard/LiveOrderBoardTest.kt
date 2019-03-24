@@ -181,8 +181,10 @@ class LiveOrderBoardTest {
 
         // Note: I would expect that such a functionality would be used under high load in a production setting, hence there might be a need for it to be thread-safe? This is a primitive attempt at testing the class under such a situation.
 
+        val maxNumberOfCoroutines = 10000
+
         val orders = runBlocking {
-            (1..1000).map {
+            (1..maxNumberOfCoroutines).map {
                 async {
                     val randomLong = (1..50).toList().random().toLong()
                     val anOrder = createOrder(pricePerKg = somePossibleBigDecimal(), orderQuantity = somePossibleBigDecimal())
@@ -195,9 +197,11 @@ class LiveOrderBoardTest {
         val firstExpectedInformationSummary = createExpectedSummaryInformation(*orders.toTypedArray())
         assertEquals(firstExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
 
+        // These single-threaded filtration are the bottlenecks
         val ordersToBeCancelled = orders.filterIndexed { index, _ -> index % 2 == 0 }
         val remainingOrders = orders.filter { !ordersToBeCancelled.contains(it) }
         val secondExpectedInformationSummary = createExpectedSummaryInformation(*remainingOrders.toTypedArray())
+
         runBlocking {
             ordersToBeCancelled.map {
                 async {
@@ -207,6 +211,7 @@ class LiveOrderBoardTest {
                 }
             }
         }
+
         assertEquals(secondExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
 
 
