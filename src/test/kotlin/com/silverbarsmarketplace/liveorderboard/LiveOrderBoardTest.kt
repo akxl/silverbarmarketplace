@@ -12,10 +12,12 @@ class LiveOrderBoardTest {
 
     private lateinit var liveOrderBoard: LiveOrderBoard
 
+
     @Before
     fun createFreshInstance() {
         liveOrderBoard = LiveOrderBoard()
     }
+
 
     @Test
     fun ableToAddSingleOrder() {
@@ -28,6 +30,7 @@ class LiveOrderBoardTest {
         assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
+
 
     @Test
     fun summaryBoardAccumulatesOrdersOfSimilarPrice() {
@@ -43,6 +46,7 @@ class LiveOrderBoardTest {
         assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
+
 
     @Test
     fun eachPriceIsShownAsDifferentRows() {
@@ -71,6 +75,7 @@ class LiveOrderBoardTest {
         assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
+
 
     @Test
     fun unableToAddDuplicateOrder() {
@@ -116,6 +121,7 @@ class LiveOrderBoardTest {
 
     }
 
+
     @Test
     fun rejectsCancellationsOfOrdersThatDoNotExist_prepopulatedLiveOrderBoard() {
 
@@ -131,6 +137,7 @@ class LiveOrderBoardTest {
 
     }
 
+
     @Test
     fun ableToCancelExistingOrder_removalOfEntireRow() {
 
@@ -143,6 +150,7 @@ class LiveOrderBoardTest {
         assertEquals(expectedSummaryInformation, liveOrderBoard.getSummaryInformation())
 
     }
+
 
     @Test
     fun ableToCancelExistingOrder_rowStillHasRemainingQuantity() {
@@ -160,6 +168,7 @@ class LiveOrderBoardTest {
 
     }
 
+
     @Test
     fun ableToCancelExistingOrder_withoutAffectingOtherRows() {
 
@@ -176,6 +185,7 @@ class LiveOrderBoardTest {
 
     }
 
+
     @Test
     fun humbleAttemptAtTestingTheClassUnderConcurrentSituations() {
 
@@ -183,17 +193,7 @@ class LiveOrderBoardTest {
 
         val maxNumberOfCoroutines = 10000
 
-        val orders = runBlocking {
-            (1..maxNumberOfCoroutines).map {
-                async {
-                    val randomLong = (1..50).toList().random().toLong()
-                    val anOrder = createOrder(pricePerKg = somePossibleBigDecimal(), orderQuantity = somePossibleBigDecimal())
-                    delay(randomLong)
-                    liveOrderBoard.submitOrder(anOrder)
-                    anOrder
-                }
-            }.awaitAll()
-        }
+        val orders = createAndAddNumberOfOrdersViaAsyncThreads(maxNumberOfCoroutines)
         val firstExpectedInformationSummary = createExpectedSummaryInformation(*orders.toTypedArray())
         assertEquals(firstExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
 
@@ -202,23 +202,13 @@ class LiveOrderBoardTest {
         val remainingOrders = orders.filter { !ordersToBeCancelled.contains(it) }
         val secondExpectedInformationSummary = createExpectedSummaryInformation(*remainingOrders.toTypedArray())
 
-        runBlocking {
-            ordersToBeCancelled.map {
-                async {
-                    val randomLong = (1..50).toList().random().toLong()
-                    delay(randomLong)
-                    liveOrderBoard.cancelOrder(it)
-                }
-            }
-        }
 
+        cancelOrdersViaAysncThreads(ordersToBeCancelled)
         assertEquals(secondExpectedInformationSummary, liveOrderBoard.getSummaryInformation())
 
 
 
     }
-
-
 
 
     private fun createOrder(
@@ -263,5 +253,27 @@ class LiveOrderBoardTest {
         BigDecimal(300),
         BigDecimal(500)
     ).random()
+
+    private fun createAndAddNumberOfOrdersViaAsyncThreads(maxNumberOfCoroutines: Int) = runBlocking {
+        (1..maxNumberOfCoroutines).map {
+            async {
+                val randomLong = (1..50).toList().random().toLong()
+                val anOrder = createOrder(pricePerKg = somePossibleBigDecimal(), orderQuantity = somePossibleBigDecimal())
+                delay(randomLong)
+                liveOrderBoard.submitOrder(anOrder)
+                anOrder
+            }
+        }.awaitAll()
+    }
+
+    private fun cancelOrdersViaAysncThreads(ordersToBeCancelled: List<Order>) = runBlocking {
+        ordersToBeCancelled.map {
+            async {
+                val randomLong = (1..50).toList().random().toLong()
+                delay(randomLong)
+                liveOrderBoard.cancelOrder(it)
+            }
+        }
+    }
 
 }
